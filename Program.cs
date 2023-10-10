@@ -35,8 +35,6 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 builder.Services.AddScoped<IdentityInformation>();
 // Custom end
 
-builder.Services.AddSingleton<WeatherForecastService>();
-
 // Custom start
 // Register the service class located in /Services/IdentityValidationProvider.cs
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityValidationProvider<IdentityUser>>();
