@@ -1,0 +1,112 @@
+﻿@page "/InventoryCount"
+@attribute [Authorize]
+@inject ApplicationDbContext applicationDbContext
+@* Inject IdentityInformation _identity that will contain user information. *@
+@inject IdentityInformation _identity
+
+<table class="listItemsTableInfo">
+    <tr><td colspan="12" class="tableName">Nuvarande inventarie</td></tr>
+    <tr class="columnName"><td>Namn</td><td>Modell</td><td>Saldo</td><td>Plats</td><td>Kommentar</td><td>Senast inventerad</td><td colspan="2"></td></tr>
+
+    @foreach (var inventoryItem in inventoryItems)
+    {
+        <!-- If the inventoryItem is the same as the inventoryItem selected for editing: Display its information using text input fields instead. -->
+        @if (inventoryItem == editThisInventoryItem)
+        {
+            <tr class="listItemsEditTr">
+                <td>@inventoryItem.Name</td>
+                <td>@inventoryItem.Model</td>
+                <td class="numberColumn"><input type="text" @bind="editNumberOfItems" size="1" maxlength="4" /></td>
+                <td>@inventoryItem.Location</td>
+                <td>@inventoryItem.Comment</td>
+                <td>@HelperClass.FormatLastInventoryCount(inventoryItem.LastInventoryCount)</td>
+                <td class="bigButton"><button @onclick="() => SaveCount(inventoryItem.Id)">Spara</button></td>
+                <td class="bigButton"><button @onclick="() => CancelEdit()">Avbryt</button></td>
+            </tr>
+
+            <!-- Row for displaying messages. -->
+            @if (!string.IsNullOrEmpty(messageEdit))
+            {
+                <tr><td colspan="12" class="messageTd">@messageEdit</td></tr>
+            }
+            else
+            {
+                <tr><td colspan="12" class="messageTd">Gör dina ändringar.</td></tr>
+            }
+        }
+        <!-- If the inventoryItem hasn't been selected for editing: Display its information as text only. -->
+        else
+        {
+            <tr class="listItemsTr">
+                <td>@inventoryItem.Name</td>
+                <td>@inventoryItem.Model</td>
+                <td class="listItemsTdRatioGood">@inventoryItem.NumberOfItems</td>
+                <td>@inventoryItem.Location</td>
+                <td>@inventoryItem.Comment</td>
+                <td>@HelperClass.FormatLastInventoryCount(inventoryItem.LastInventoryCount)</td>
+                <td class="bigButton" colspan="2"><button @onclick="() => EditItem(inventoryItem)" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")">Inventera</button></td>
+            </tr>
+        }
+    }
+</table>
+<br />
+
+@code {
+
+    List<InventoryItem> inventoryItems = new List<InventoryItem>();     // A variable to hold all the inventoryItems in the database.
+    private InventoryItem editThisInventoryItem;                        // If an inventoryItem has been put into this variable its information will be displayed in input fields for editing the next time the page renders.
+    private string editNumberOfItems;                                   // The input field when editing the number of inventoryItems in stock will bind to this variable.
+    private bool isAnItemBeingEdited = false;                           // Set to true to change all other input field to "disabled = true". False by default.
+    private string messageEdit = "";
+
+    // Page initialization.
+    protected override async Task OnInitializedAsync()
+    {
+        inventoryItems = await applicationDbContext.Inventory.ToListAsync(); ;        // Populate the variable holding all the inventoryItems in the database. Sort by the longest since last inventory count at the top.
+        inventoryItems = inventoryItems.OrderBy(entity => entity.LastInventoryCount).ToList();    // Resort the list of items.
+    }
+
+    // Edit an item.
+    private void EditItem(InventoryItem inventoryItem)
+    {
+        editThisInventoryItem = inventoryItem;                          // This will put the inventoryItem's information in a text field for editing in the loop above.
+        editNumberOfItems = inventoryItem.NumberOfItems.ToString();     // Put the current value of NumberOfItems into that input text field.
+        isAnItemBeingEdited = true;                                     // This will disable all other input fields and buttons.
+    }
+
+    // Cancel the edit.
+    private void CancelEdit()
+    {
+        editThisInventoryItem = null;
+        isAnItemBeingEdited = false;
+        messageEdit = "";
+    }
+
+    // Save. Get the Id of the inventoryItem we were editing so we can update it in the database.
+    private void SaveCount(int id)
+    {
+        if (!ValidateFormInput.ValidateInventoryCountForm(editNumberOfItems, ref messageEdit))
+            return;
+
+        var originalItem = applicationDbContext.Inventory.Find(id);       // Get the inventoryItem to update in the database.
+
+        int numberOfItemsBeforeCount = originalItem.NumberOfItems;
+
+        if (originalItem != null)
+        {
+            DateTime dateTimeInSweden = HelperClass.GetDateTimeInTimeZone("Central European Standard Time");
+
+            originalItem.NumberOfItems = HelperClass.GetIntFromString(editNumberOfItems);
+            originalItem.LastInventoryCount = dateTimeInSweden;
+
+            applicationDbContext.SaveChanges();  
+        }
+                
+        inventoryItems = inventoryItems.OrderBy(entity => entity.LastInventoryCount).ToList();  // Resort the list of items.
+
+        editThisInventoryItem = null;
+        isAnItemBeingEdited = false;
+
+        HelperClass.AddLogEntry(applicationDbContext, _identity.UserName, "Inventering", "Inventerade artikeln '" + originalItem.Name + "' (Id = " + id + ") från " + numberOfItemsBeforeCount + " till " + editNumberOfItems);
+    }
+}

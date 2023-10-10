@@ -1,0 +1,83 @@
+﻿@page "/UserList"
+@inject ApplicationDbContext applicationDbContext
+@inject UserManagerService userManagerService
+
+<AuthorizeView Roles="Administrator, User">
+    <Authorized>
+        <!-- Table for displaying all the items. -->
+        <table class="listItemsTableInfo">
+            <tr><td colspan="11" class="tableName">Användare</td></tr>
+            <tr class="columnName"><td>Användarnamn</td><td>Status</td></tr>
+
+            @foreach (var listUser in listUsers)
+            {
+                <tr class="listItemsTr">
+                    <td>@listUser.UserName</td>
+                    <td>@listUser.Role</td>
+                    <td>
+                        @if (listUser.Role == "Unassigned")
+                        {
+                            string setGroup = "User";
+                            <button @onclick="() => ChangeRole(listUser.UserName, setGroup)">Godkänn</button>
+                        }
+                        else if (listUser.Role == "User")
+                        {
+                            string setGroup = "Unassigned";
+                            <button @onclick="() => ChangeRole(listUser.UserName, setGroup)">Ta bort rättigheter</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+        <br />
+    </Authorized>
+    <NotAuthorized>
+        Du kan inte se användarlistan förrän du loggat in.
+    </NotAuthorized>
+</AuthorizeView>
+test: @messages
+
+@code {
+    List<ListUsers> listUsers = new List<ListUsers>();
+    private List<IdentityRole> allRoles;
+    private string messages = "inget";
+
+
+    // Page initialization.
+    protected override async Task OnInitializedAsync()
+    {
+        listUsers = GetUsersWithRoles();                                            // Populate the variable holding all the inventoryItems in the database. Sort by the longest since last inventory count at the top.
+        listUsers = listUsers.OrderBy(entity => entity.UserName).ToList();      // Resort the list of items.
+
+        allRoles = userManagerService.GetAllRoles();
+    }
+
+    private string IsSelected(string currentRole, string listedRole)
+    {
+        return "selected";
+    }
+
+    public List<ListUsers> GetUsersWithRoles()
+    {
+        var usersWithRoles = (from user in applicationDbContext.Users
+                              join userRole in applicationDbContext.UserRoles
+                              on user.Id equals userRole.UserId
+                              join role in applicationDbContext.Roles
+                              on userRole.RoleId equals role.Id
+                              select new ListUsers
+                                  {
+                                      UserName = user.UserName,
+                                      Role = role.Name
+                                  }).ToList();
+
+        return usersWithRoles;
+    }
+
+    private async void ChangeRole(string userName, string role)
+    {
+        messages = role;
+        bool changeRoleResult = await userManagerService.UpdateUserRoleByUsernameAsync(userName, role);
+        listUsers = GetUsersWithRoles();                                            // Populate the variable holding all the inventoryItems in the database. Sort by the longest since last inventory count at the top.
+        listUsers = listUsers.OrderBy(entity => entity.UserName).ToList();          // Resort the list of items.
+    }
+}

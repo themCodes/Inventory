@@ -1,0 +1,40 @@
+﻿@page "/"
+@inject ApplicationDbContext applicationDbContext
+
+<AuthorizeView>
+    <Authorized>
+        <p>Välkommen <b>@context.User.Identity.Name</b></p>
+    </Authorized>
+    <NotAuthorized>
+        <p role="status">Du måste logga in för att kunna använda den här siten.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Unassigned">
+    <Authorized>
+        <br />
+        Innan en administratör har godkänt dig kan du inte göra så mycket på denna siten.
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Administrator, User">
+    <Authorized>
+        <br />
+        Du är antingen en administratör eller en godkänd användare.
+        <br />
+        <table>
+            <tr><td><h3>Senaste nytt</h3></td></tr>
+            <tr>
+                <td>
+                    <b>2023-10-03</b><br />
+                    - Man kan nu inventera saker. Klicka på länken Inventera i menyn så visas alla prylar. Det äldsta datumet överst.<br />
+                    - Allt man gör loggas nu och syns under länken Händelselog.
+                </td>
+            </tr>
+        </table>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+
+}

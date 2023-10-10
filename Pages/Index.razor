@@ -1,0 +1,28 @@
+﻿@page "/index2"
+
+<PageTitle>Index</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <p>Välkommen <b>@context.User.Identity.Name</b></p>
+    </Authorized>
+    <NotAuthorized>
+        <p role="status">Du måste logga in för att kunna använda den här siten.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            
+        }
+    }
+}

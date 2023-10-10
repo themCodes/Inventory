@@ -1,0 +1,37 @@
+﻿@page "/login"
+@model Inventory.Areas.Identity.Pages.Account.LoginModel
+
+<style>
+    .centered-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* This ensures that the container takes up the full viewport height. */
+    }
+</style>
+
+<div class="centered-container">
+    <div class="col-md-4">
+        <section>
+            <form id="account" method="post">
+                <div class="form-floating" style="margin:10px; font-weight: bold">
+                    Logga in
+                </div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-floating" style="margin:10px">
+                    <input asp-for="Input.Username" class="form-control" autocomplete="username" aria-required="true" />
+                    <label asp-for="Input.Username" class="form-label"></label>
+                    <span asp-validation-for="Input.Username" class="text-danger"></span>
+                </div>
+                <div class="form-floating" style="margin:10px">
+                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
+                    <label asp-for="Input.Password" class="form-label"></label>
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                </div>
+                <div style="margin:10px">
+                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Logga in</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>

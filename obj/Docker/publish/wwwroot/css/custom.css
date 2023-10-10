@@ -1,0 +1,88 @@
+﻿/* Global */
+table {
+    width: 100%;
+    background-color: #ddd;
+}
+
+td {
+    padding-left: 10px;
+    padding-right: 10px;
+    vertical-align: top;
+    border: 1px solid black;
+}
+
+textarea {
+    width: 100%;
+}
+
+button {
+    width: 100%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.bigButton {
+    width: 80px;
+}
+
+.smallButton {
+    width: 60px;
+}
+
+.tableName {
+    background-color: #fbdd93;
+    font-weight: bold;
+}
+
+.columnName {
+    background-color: #bbb;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.numberColumn {
+    width: 5px;
+    text-align: right;
+}
+
+.messageTd {
+    background-color: #bbb;
+}
+
+input[type="text"] {
+    width: 100%;
+}
+
+.disabledInput {
+    background-color: #ddd;
+}
+
+/* Add items table. */
+.addItemTableInfo {
+    width: 1200px;
+}
+
+/* List items table - Non edit. */
+.listItemsTr {
+    background-color: #ddd;
+}
+
+    .listItemsTr:hover {
+        background-color: #FEFEFE;
+    }
+
+.listItemsTdRatioGood {
+    width: 5px;
+    text-align: right;
+}
+
+.listItemsTdRatioBad {
+    width: 5px;
+    text-align: right;
+    color: red;
+}
+
+/* List items table - Edit. */
+.listItemsEditTr {
+    background-color: #bbb;
+}

@@ -1,0 +1,29 @@
+﻿@page "/Log"
+@attribute [Authorize]
+@inject ApplicationDbContext applicationDbContext
+
+<h3>Log</h3>
+<!-- Table for displaying all the items. -->
+<table class="listItemsTableInfo">
+    <tr><td colspan="11" class="tableName">Händelselog</td></tr>
+    <tr class="columnName"><td>Tidpunkt</td><td>Användare</td><td>Kategori</td><td>Handling</td></tr>
+    @foreach(var logEntry in logEntries)
+    {
+        <tr class="listItemsEditTr">
+            <td>@HelperClass.FormatDateTime(logEntry.Date)</td>
+            <td>@logEntry.Username</td>
+            <td>@logEntry.ActionCategory</td>
+            <td>@logEntry.Action</td>
+        </tr>
+    }
+</table>
+
+@code {
+    List<LogEntry> logEntries = new List<LogEntry>();
+
+    // Page initialization.
+    protected override async Task OnInitializedAsync()
+    {
+        logEntries = await applicationDbContext.Log.OrderByDescending(p => p.Date).ToListAsync(); ;        // Populate the variable holding all the inventoryItems in the database. Sort by the longest since last inventory count at the top.
+    }
+}

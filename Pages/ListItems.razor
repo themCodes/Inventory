@@ -1,0 +1,252 @@
+﻿@page "/InventoryList"
+@inject ApplicationDbContext applicationDbContext
+@* Inject IdentityInformation _identity that will contain user information. *@
+@inject IdentityInformation _identity
+@inject IJSRuntime JSRuntime
+
+<AuthorizeView Roles="Administrator, User">
+    <Authorized>
+        <!-- Form for adding an item to the database. -->
+        <table class="addItemTableInfo">
+            <tr><td colspan="7" class="tableName">Lägg till en artikel</td></tr>
+            <tr>
+                <td><input @bind="@nameAdd" type="text" placeholder="Namn*" size="32" maxlength="200" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")" /></td>
+                <td><input @bind="@modelAdd" type="text" placeholder="Modell" size="32" maxlength="200" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")" /></td>
+                <td><input @bind="@numberOfItemsAdd" type="text" placeholder="Saldo*" size="3" maxlength="4" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")" /></td>
+                <td><input @bind="@numberOfItemsTriggerAdd" type="text" placeholder="Trigger*" size="5" maxlength="4" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")" /></td>
+                <td><input @bind="@locationAdd" type="text" placeholder="Plats*" size="20" maxlength="200" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")" /></td>
+                <td><textarea rows="2" cols="30" maxlength="200" @bind="@commentAdd" placeholder="Kommentar" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")" /> </td>
+                <td><button @onclick="AddItem" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "buttonBig")">Lägg till</button></td>
+            </tr>
+
+            <!-- Row for displaying messages. -->
+            @if (!string.IsNullOrEmpty(messageAdd))
+            {
+                <tr><td colspan="7" class="messageTd">@messageAdd  * = obligatoriskt fält.</td></tr>
+            }
+            else
+            {
+                <tr><td colspan="7" class="messageTd">Fyll i fälten och klicka <b>Lägg till</b>. * = obligatoriskt fält.</td></tr>
+            }
+        </table>
+        <br />
+
+        <!-- Table for displaying all the items. -->
+        <table class="listItemsTableInfo">
+            <tr><td colspan="11" class="tableName">Nuvarande inventarie</td></tr>
+            <tr class="columnName"><td>Namn</td><td>Modell</td><td>Saldo</td><td></td><td></td><td>Trigger</td><td>Ratio</td><td>Plats</td><td>Kommentar</td><td></td><td></td></tr>
+            @foreach (var inventoryItem in inventoryItems)
+            {
+                string ratioStyle = HelperClass.GetRatioStyleName(inventoryItem.NumberOfItems, inventoryItem.NumberOfItemsTrigger);
+                string ratioNumber = HelperClass.GetRatioNumber(inventoryItem.NumberOfItems, inventoryItem.NumberOfItemsTrigger);
+
+                <!-- If an item has been selected for editing: Display it using text input fields instead of just text only. -->
+                @if (inventoryItem == editThisInventoryItem)
+                {
+                    <tr class="listItemsEditTr">
+                        <td><input type="text" @bind="nameEdit" maxlength="200" /></td>
+                        <td><input type="text" @bind="modelEdit" maxlength="200" /></td>
+                        <td class="numberColumn"><input type="text" @bind="numberOfItemsEdit" size="1" maxlength="4" /></td>
+                        <td class="smallButton"><button disabled>+</button></td>
+                        <td class="smallButton"><button disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")">-</button></td>
+                        <td class="numberColumn"><input type="text" @bind="numberOfItemsTriggerEdit" size="1" maxlength="4" /></td>
+                        <td class="numberColumn">@ratioNumber</td>
+                        <td><input type="text" @bind="locationEdit" size="20" maxlength="200" /></td>
+                        <td><textarea rows="2" cols="30" @bind="commentEdit" /></td>
+                        <td class="bigButton"><button @onclick="() => SaveEdit(inventoryItem.Id)">Spara</button></td>
+                        <td class="bigButton"><button @onclick="() => CancelEdit()">Avbryt</button></td>
+                    </tr>
+
+                    <!-- Row for displaying messages. -->
+                    @if (!string.IsNullOrEmpty(messageEdit))
+                    {
+                        <tr><td colspan="11" class="messageTd">@messageEdit</td></tr>
+                    }
+                    else
+                    {
+                        <tr><td colspan="11" class="messageTd">Gör dina ändringar.</td></tr>
+                    }
+                }
+                <!-- If the item hasn't been selected for editing: Display it as text only. -->
+                else
+                {
+                    <tr class ="listItemsTr">
+                        <td>@inventoryItem.Name</td>
+                        <td>@inventoryItem.Model</td>
+                        <td class="@ratioStyle">@inventoryItem.NumberOfItems</td>
+                        <td class="smallButton"><button @onclick="() => DecrementQuantity(inventoryItem.Id)" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")">-</button></td>
+                        <td class="smallButton"><button @onclick="() => IncrementQuantity(inventoryItem.Id)" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")">+</button></td>
+                        <td class="numberColumn">@inventoryItem.NumberOfItemsTrigger</td>
+                        <td class="@ratioStyle">@ratioNumber</td>
+                        <td>@inventoryItem.Location</td>
+                        <td>@inventoryItem.Comment</td>
+                        <td class="bigButton"><button @onclick="() => EditItem(inventoryItem.Id)" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")">Redigera</button></td>
+                        <td class="bigButton"><button @onclick="() => DeleteItem(inventoryItem.Id, inventoryItem.Name)" disabled="@isAnItemBeingEdited" class="@(isAnItemBeingEdited ? "disabledInput" : "")">Ta bort</button></td>
+                    </tr>
+                }
+            }
+         </table>
+         <br />
+    </Authorized>
+    <NotAuthorized>
+        Du kan inte se en inventarielista förrän du loggat in.
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{
+    private List<InventoryItem> inventoryItems = new List<InventoryItem>();     // A variable to hold all the inventoryItems in the database.
+    private InventoryItem editThisInventoryItem;                        // If an inventoryItem has been put into this variable its information will be displayed in input fields for editing the next time the page renders.
+
+    // Variables that the input fields when adding/editing will bind to. Will be populated with the data from the item when being edited.
+    private string nameAdd, nameEdit;
+    private string modelAdd = "", modelEdit = "";
+    private string numberOfItemsAdd, numberOfItemsEdit;
+    private string numberOfItemsTriggerAdd, numberOfItemsTriggerEdit;
+    private string locationAdd, locationEdit;
+    private string commentAdd = "", commentEdit = "";
+
+    private bool isAnItemBeingEdited = false;                           // Set to true to change all other input field to "disabled = true". False by default.
+    private string messageAdd = "";
+    private string messageEdit = "";
+
+    // Page initialization.
+    protected override async Task OnInitializedAsync()
+    {
+        inventoryItems = applicationDbContext.Inventory.ToList();        // Populate the variable holding all the inventoryItems in the database. Sort by the longest since last inventory count at the top.
+        inventoryItems = inventoryItems.OrderBy(entity => entity.Name).ThenBy(p => p.Model).ThenBy(p => p.Location).ToList();    // Resort the list of items.
+    }
+
+
+    // Add a new item to the database.
+    private void AddItem()
+    {
+        if (!ValidateFormInput.ValidateAddItemForm(nameAdd, numberOfItemsAdd, numberOfItemsTriggerAdd, locationAdd, ref messageAdd))
+            return;
+
+        var inventoryItem = new InventoryItem { Name = nameAdd, Model = modelAdd, NumberOfItems = HelperClass.GetIntFromString(numberOfItemsAdd), NumberOfItemsTrigger = HelperClass.GetIntFromString(numberOfItemsTriggerAdd), Location = locationAdd, LastInventoryCount = HelperClass.GetDateTimeInTimeZone("Central European Standard Time"), Comment = commentAdd };
+
+        applicationDbContext.Inventory.Add(inventoryItem);                              // Add the item to the database.
+        applicationDbContext.SaveChanges();
+
+        inventoryItems.Add(inventoryItem);                                              // Add the item to the list currently being displayed.
+        inventoryItems = inventoryItems.OrderBy(entity => entity.Name).ThenBy(p => p.Model).ThenBy(p => p.Location).ToList();        // Sort the list so the added item is in its correct location.
+
+        // Add the event to the log table.
+        HelperClass.AddLogEntry(applicationDbContext, _identity.UserName, "Lägg till", "Lade till artikeln '" + nameAdd + "'");
+
+        // Clear the input fields and post a message it's done.
+        nameAdd = "";
+        modelAdd = "";
+        numberOfItemsAdd = "";
+        numberOfItemsTriggerAdd = "";
+        locationAdd = "";
+        commentAdd = "";
+        messageAdd = "Artikeln är inlagd.";
+    }
+
+    // Increase the number of an item by 1.
+    private void IncrementQuantity(int id)
+    {
+        var originalItem = applicationDbContext.Inventory.Find(id);       // Get the inventoryItem to update in the database.
+
+        int numberOfItemsBefore = originalItem.NumberOfItems;
+
+        originalItem.NumberOfItems++;
+        applicationDbContext.SaveChanges();
+
+        // Add the event to the log table.
+        HelperClass.AddLogEntry(applicationDbContext, _identity.UserName, "Öka antal", "Ökade antalet artiklar av varan '" + originalItem.Name + "' (Id = " + id + ") med 1. Från " + numberOfItemsBefore + " till " + (numberOfItemsBefore + 1));
+    }
+
+    // Decrease the number of an item by 1.
+    private void DecrementQuantity(int id)
+    {
+        var originalItem = applicationDbContext.Inventory.Find(id);       // Get the inventoryItem to update in the database.
+
+        int numberOfItemsBefore = originalItem.NumberOfItems;
+
+        originalItem.NumberOfItems--;
+        applicationDbContext.SaveChanges();
+
+        // Add the event to the log table.
+        HelperClass.AddLogEntry(applicationDbContext, _identity.UserName, "Minska antal", "Minskade antalet artiklar av varan '" + originalItem.Name + "' (Id = " + id + ") med 1. Från " + numberOfItemsBefore + " till " + (numberOfItemsBefore - 1));
+    }
+
+    // Edit an item.
+    private void EditItem(int id)
+    {
+        // Set to true to change the style of all other input field to disabled = true.
+        isAnItemBeingEdited = true;
+
+        var originalItem = applicationDbContext.Inventory.Find(id);       // Get the inventoryItem to update in the database.
+
+        // Put the selected item into the variable editInventoryItem. This will change the td content from text to an input field the next time the page renders.
+        editThisInventoryItem = originalItem;
+
+        // Populate the variables used for editing. The input fields will bind to these variables.
+        nameEdit = originalItem.Name;
+        modelEdit = originalItem.Model;
+        numberOfItemsEdit = originalItem.NumberOfItems.ToString();
+        numberOfItemsTriggerEdit = originalItem.NumberOfItemsTrigger.ToString();
+        locationEdit = originalItem.Location;
+        commentEdit = originalItem.Comment;
+    }
+
+    // Save the edit.
+    private void SaveEdit(int id)
+    {
+        if (!ValidateFormInput.ValidateAddItemForm(nameEdit, numberOfItemsEdit, numberOfItemsTriggerEdit, locationEdit, ref messageEdit))
+            return;
+
+        var originalItem = applicationDbContext.Inventory.Find(id);       // Get the inventoryItem to update in the database.
+
+        string nameBeforeEdit = originalItem.Name;      // For the log entry.
+
+        originalItem.Name = nameEdit;
+        originalItem.Model = modelEdit;
+        originalItem.NumberOfItems = HelperClass.GetIntFromString(numberOfItemsEdit);
+        originalItem.NumberOfItemsTrigger = HelperClass.GetIntFromString(numberOfItemsTriggerEdit);
+        originalItem.Location = locationEdit;
+        originalItem.Comment = commentEdit;
+
+        applicationDbContext.SaveChanges();
+
+        inventoryItems = inventoryItems.OrderBy(entity => entity.Name).ThenBy(p => p.Model).ThenBy(p => p.Location).ToList();    // Resort the list of items.
+
+        editThisInventoryItem = null;
+        isAnItemBeingEdited = false;
+        messageAdd = "";
+
+        // Add the event to the log table.
+        HelperClass.AddLogEntry(applicationDbContext, _identity.UserName, "Redigera artikel", "Redigerade artikeln '" + nameBeforeEdit + "' (Id = " + id + ")");
+    }
+
+    // Cancel the edit.
+    private void CancelEdit()
+    {
+        isAnItemBeingEdited = false;        // Set to false to change the style of all other input field to disabled = false.
+        editThisInventoryItem = null;       // Set to null so that no item in the itemlist will match the comparison and be marked for editing.
+        messageEdit = "";                   // Clear messageEdit so the next time something is being edited the last message won't be shown.
+    }
+
+    // Delete an item.
+    private async Task DeleteItem(int id, string name)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Är du säker på att du vill ta bort artikeln?");
+
+        if (confirmed)
+        {
+            var item = applicationDbContext.Inventory.Find(id);
+            if (item != null)
+            {
+                applicationDbContext.Inventory.Remove(item);
+                applicationDbContext.SaveChanges();
+
+                inventoryItems.RemoveAll(entity => entity.Id == id);                        // Delete the item from the list currently being displayed.
+                inventoryItems = inventoryItems.OrderBy(entity => entity.Name).ThenBy(p => p.Model).ThenBy(p => p.Location).ToList();    // Resort the list of items.
+                                                                                            
+                HelperClass.AddLogEntry(applicationDbContext, _identity.UserName, "Radera artikel", "Raderade artikeln '" + name + "' (Id = " + id + ")");      // Add the event to the log table.
+            }
+        }
+    }
+}
