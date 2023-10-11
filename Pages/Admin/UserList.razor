@@ -38,7 +38,7 @@
 test: @messages
 
 @code {
-    List<ListUsers> listUsers = new List<ListUsers>();
+    private List<ListUsers> listUsers = new List<ListUsers>();
     private List<IdentityRole> allRoles;
     private string messages = "inget";
 
@@ -46,15 +46,10 @@ test: @messages
     // Page initialization.
     protected override async Task OnInitializedAsync()
     {
-        listUsers = GetUsersWithRoles();                                            // Populate the variable holding all the inventoryItems in the database. Sort by the longest since last inventory count at the top.
-        listUsers = listUsers.OrderBy(entity => entity.UserName).ToList();      // Resort the list of items.
+        listUsers = GetUsersWithRoles();                                        // Populate the variable holding all the users.
+        listUsers = listUsers.OrderBy(entity => entity.UserName).ToList();      // Resort the list of users.
 
         allRoles = userManagerService.GetAllRoles();
-    }
-
-    private string IsSelected(string currentRole, string listedRole)
-    {
-        return "selected";
     }
 
     public List<ListUsers> GetUsersWithRoles()
@@ -73,11 +68,11 @@ test: @messages
         return usersWithRoles;
     }
 
-    private async void ChangeRole(string userName, string role)
+    private async Task ChangeRole(string userName, string role)
     {
         messages = role;
         bool changeRoleResult = await userManagerService.UpdateUserRoleByUsernameAsync(userName, role);
-        listUsers = GetUsersWithRoles();                                            // Populate the variable holding all the inventoryItems in the database. Sort by the longest since last inventory count at the top.
-        listUsers = listUsers.OrderBy(entity => entity.UserName).ToList();          // Resort the list of items.
+        listUsers = GetUsersWithRoles();                                            // Populate the variable holding all the users.
+        listUsers = listUsers.OrderBy(entity => entity.UserName).ToList();          // Resort the list of users.
     }
 }

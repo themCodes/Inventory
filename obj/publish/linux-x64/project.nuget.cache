@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "l5ZTrIE0i9Ugw5MAYNe7KnyFCvQKj6BvUxVZTI3r8uEGmvGRHtP2uXqBFq7wTy4P4IZ6p7F7KuQBkh71VncQOw==",
+  "dgSpecHash": "aUEAvErCwoQnbCMo0uchw1ThcFVuef8inbHbk9aS2gsAHkXYHWyQD7JVYWuTcySB6ov7TiHXBx2W3dsuKSlgQQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\rudli\\OneDrive\\Backup\\Programmering\\C#\\BlazorServer\\Inventory\\Inventory.csproj",
   "expectedPackageFiles": [
@@ -78,9 +78,9 @@
     "C:\\Users\\rudli\\.nuget\\packages\\system.text.json\\7.0.0\\system.text.json.7.0.0.nupkg.sha512",
     "C:\\Users\\rudli\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "C:\\Users\\rudli\\.nuget\\packages\\system.windows.extensions\\6.0.0\\system.windows.extensions.6.0.0.nupkg.sha512",
-    "C:\\Users\\rudli\\.nuget\\packages\\microsoft.netcore.app.runtime.linux-x64\\7.0.11\\microsoft.netcore.app.runtime.linux-x64.7.0.11.nupkg.sha512",
-    "C:\\Users\\rudli\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.linux-x64\\7.0.11\\microsoft.aspnetcore.app.runtime.linux-x64.7.0.11.nupkg.sha512",
-    "C:\\Users\\rudli\\.nuget\\packages\\microsoft.netcore.app.host.linux-x64\\7.0.11\\microsoft.netcore.app.host.linux-x64.7.0.11.nupkg.sha512"
+    "C:\\Users\\rudli\\.nuget\\packages\\microsoft.netcore.app.runtime.linux-x64\\7.0.12\\microsoft.netcore.app.runtime.linux-x64.7.0.12.nupkg.sha512",
+    "C:\\Users\\rudli\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.linux-x64\\7.0.12\\microsoft.aspnetcore.app.runtime.linux-x64.7.0.12.nupkg.sha512",
+    "C:\\Users\\rudli\\.nuget\\packages\\microsoft.netcore.app.host.linux-x64\\7.0.12\\microsoft.netcore.app.host.linux-x64.7.0.12.nupkg.sha512"
   ],
   "logs": []
 }
